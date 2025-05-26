@@ -34,5 +34,7 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 app.get('/', (req, res) => {
+  
+  return res.status(201).send("Home route")
   console.log("Home route")
 })
