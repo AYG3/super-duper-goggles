@@ -73,6 +73,7 @@ const updateMemoStatus = asyncHandler(async (req, res) => {
   if (!memo) {
     res.status(404);
     throw new Error("Memo not found");
+    
   }
 
   if (
