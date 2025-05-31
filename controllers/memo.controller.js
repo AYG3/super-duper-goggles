@@ -6,7 +6,7 @@ import { sendEmail } from "../utils/email.js";
 
 // Create and send memo
 const createMemo = asyncHandler(async (req, res) => {
-  const { recipients, department, content } = req.body;
+  const { recipients, department, content, title } = req.body;
 
   // Validate content against defined memo fields
   const fields = await MemoField.find();
