@@ -40,6 +40,7 @@ const createMemo = asyncHandler(async (req, res) => {
     sender: req.user._id,
     recipients: recipientIds,
     department,
+    title,
     content,
     status,
   });
