@@ -11,7 +11,7 @@ const memoSchema = new mongoose.Schema({
     of: {
       status: {
         type: String,
-        enum: ["sent", "delivered", "read", "acknowledged"],
+        enum: ["sent", "delivered", "read", "acknowledged", "archived"],
         default: "sent",
       },
       timestamp: { type: Date, default: Date.now },
