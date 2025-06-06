@@ -51,14 +51,24 @@ const createMemo = asyncHandler(async (req, res) => {
     status,
   });
 
-  // Send email notifications
-  const recipientUsers = await User.find({ _id: { $in: recipientIds } });
-  for (const user of recipientUsers) {
-    await sendEmail({
-      to: user.email,
-      subject: "New Memo Received",
-      text: `You have received a new memo from ${req.user.name}. Log in to view details.`,
-    });
+  // Try to send email notifications, but don't fail if email sending fails
+  try {
+    const recipientUsers = await User.find({ _id: { $in: recipientIds } });
+    for (const user of recipientUsers) {
+      try {
+        await sendEmail({
+          to: user.email,
+          subject: "New Memo Received",
+          text: `You have received a new memo from ${req.user.name}. Log in to view details.`,
+        });
+      } catch (emailError) {
+        console.error(`Failed to send email to ${user.email}:`, emailError);
+        // Continue with next user even if email fails for one user
+      }
+    }
+  } catch (emailsError) {
+    console.error("Error sending notification emails:", emailsError);
+    // Continue with response even if emails fail
   }
 
   res.status(201).json(memo);
