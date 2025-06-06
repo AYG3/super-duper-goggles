@@ -77,10 +77,39 @@ const createMemo = asyncHandler(async (req, res) => {
 
 // Get memos for user
 const getMemos = asyncHandler(async (req, res) => {
+  console.log("Getting memos for user:", req.user._id, "department:", req.user.department);
+  
   const memos = await Memo.find({
-    $or: [{ recipients: req.user._id }, { department: req.user.department }],
+    $or: [
+      { sender: req.user._id },
+      { recipients: req.user._id }, 
+      { department: req.user.department }
+    ],
   }).populate("sender", "name email");
+  
+  console.log("Found memos:", memos.length);
   res.json(memos);
+});
+
+// Get memo by ID
+const getMemoById = asyncHandler(async (req, res) => {
+  const memo = await Memo.findById(req.params.id).populate("sender", "name email");
+  
+  if (!memo) {
+    res.status(404);
+    throw new Error("Memo not found");
+  }
+
+  if (
+    !memo.recipients.includes(req.user._id) &&
+    memo.department !== req.user.department &&
+    memo.sender.toString() !== req.user._id.toString()
+  ) {
+    res.status(403);
+    throw new Error("Not authorized to view this memo");
+  }
+
+  res.json(memo);
 });
 
 // Update memo status (e.g., read, acknowledged)
@@ -133,4 +162,4 @@ const archiveMemo = asyncHandler(async (req, res) => {
   res.json(memo);
 });
 
-export { createMemo, getMemos, updateMemoStatus, archiveMemo };
+export { createMemo, getMemos, getMemoById, updateMemoStatus, archiveMemo };
