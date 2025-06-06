@@ -20,8 +20,14 @@ const createMemo = asyncHandler(async (req, res) => {
 
   // Validate recipients or department
   let recipientIds = [];
-  if (recipients) {
-    recipientIds = recipients;
+  if (recipients && recipients.length > 0) {
+    // Ensure recipients are valid ObjectIds
+    try {
+      recipientIds = recipients;
+    } catch (error) {
+      res.status(400);
+      throw new Error("Invalid recipient ID format");
+    }
   } else if (department) {
     const users = await User.find({ department });
     recipientIds = users.map((user) => user._id);
