@@ -8,7 +8,7 @@ const generateToken = (id, role) => {
 };
 
 // Login user
-const login = asyncHandler(async (req, res) => {
+const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -48,7 +48,7 @@ const login = asyncHandler(async (req, res) => {
 });
 
 // Register user
-const register = asyncHandler(async (req, res) => {
+const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password, role, department } = req.body;
 
   // Check if user already exists
@@ -100,4 +100,4 @@ const getProfile = asyncHandler(async (req, res) => {
   }
 });
 
-export { login, register, getProfile };
+export { loginUser, registerUser, getProfile };
