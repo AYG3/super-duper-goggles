@@ -4,20 +4,33 @@ import User from "../models/User.js";
 
 const protect = asyncHandler(async (req, res, next) => {
   let token;
+  console.log("Auth headers:", req.headers.authorization);
+  
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith("Bearer")
   ) {
     try {
       token = req.headers.authorization.split(" ")[1];
-      console.log("Token: ", token)
+      console.log("Token extracted:", token);
+      
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      console.log("Decoded: ", decoded);
-      req.user = await User.findById(decoded.id).select("-password");
+      console.log("Decoded token:", decoded);
+      
+      const user = await User.findById(decoded.id).select("-password");
+      console.log("User found:", user ? "Yes" : "No");
+      
+      if (!user) {
+        res.status(401);
+        throw new Error("User not found");
+      }
+      
+      req.user = user;
       next();
     } catch (error) {
+      console.error("Token verification error:", error.message);
       res.status(401);
-      throw new Error("Not authorized, token failed here");
+      throw new Error("Not authorized, token failed: " + error.message);
     }
   } else {
     res.status(401);
