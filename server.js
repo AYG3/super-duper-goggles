@@ -1,6 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
-import cors from "cors";
+import cors from "cors"; // Added cors
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/auth.route.js";
 import userRoutes from "./routes/users.route.js";
@@ -14,7 +14,27 @@ const app = express();
 connectDB();
 
 // Middleware
-app.use(cors());
+
+// CORS Configuration - FIXED
+const corsOptions = {
+  origin: [
+    'http://localhost:3000',  // Next.js frontend
+    'http://127.0.0.1:3000',  // Alternative localhost
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-Requested-With',
+    'Accept',
+    'Origin'
+  ],
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
+
 app.use(express.json());
 
 // Routes
