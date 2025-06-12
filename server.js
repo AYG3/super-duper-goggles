@@ -34,7 +34,6 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-
 app.use(express.json());
 
 // Routes
@@ -43,8 +42,14 @@ app.use("/api/users", userRoutes);
 //app.use("/api/memos", memoRoutes);
 app.use("/api/fields", fieldRoutes);
 
+// Add health check endpoint for diagnostics
+app.get("/api/health", (req, res) => {
+  res.status(200).json({ status: "ok", message: "Server is running" });
+});
+
 // Error handling
 app.use((err, req, res, next) => {
+  console.error(err.stack);
   res.status(err.status || 500).json({
     message: err.message || "Server Error",
   });

@@ -3,11 +3,11 @@ import User from "../models/User.js";
 import asyncHandler from "express-async-handler";
 
 // Generate JWT
-const generateToken = (id, role) => {
-  return jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: "30d" });
+const generateToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "30d" });
 };
 
-// Register user
+// Register user (admin only)
 const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password, role, department } = req.body;
 
@@ -31,8 +31,49 @@ const registerUser = asyncHandler(async (req, res) => {
     email: user.email,
     role: user.role,
     department: user.department,
-    token: generateToken(user._id, user.role),
+    token: generateToken(user._id),
   });
+});
+
+// Public user registration (for self-signup)
+const registerPublicUser = asyncHandler(async (req, res) => {
+  const { name, email, password, role, department } = req.body;
+
+  // Validate required fields
+  if (!name || !email || !password) {
+    res.status(400);
+    throw new Error("Please provide name, email and password");
+  }
+
+  // Check if user already exists
+  const userExists = await User.findOne({ email });
+  if (userExists) {
+    res.status(400);
+    throw new Error("User already exists");
+  }
+
+  // Create user with limited role options (not Admin)
+  const user = await User.create({
+    name,
+    email,
+    password,
+    role: role || "Student", // Default to Student if not specified
+    department: department || "General" // Default department if not specified
+  });
+
+  if (user) {
+    res.status(201).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      department: user.department,
+      token: generateToken(user._id)
+    });
+  } else {
+    res.status(400);
+    throw new Error("Invalid user data");
+  }
 });
 
 // Login user
@@ -47,7 +88,7 @@ const loginUser = asyncHandler(async (req, res) => {
       email: user.email,
       role: user.role,
       department: user.department,
-      token: generateToken(user._id, user.role),
+      token: generateToken(user._id),
     });
   } else {
     res.status(401);
@@ -55,4 +96,4 @@ const loginUser = asyncHandler(async (req, res) => {
   }
 });
 
-export { registerUser, loginUser };
+export { registerUser, loginUser, registerPublicUser };
