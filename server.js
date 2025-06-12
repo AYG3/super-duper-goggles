@@ -4,8 +4,9 @@ import cors from "cors"; // Added cors
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/auth.route.js";
 import userRoutes from "./routes/users.route.js";
-// import memoRoutes from "./routes/memos.route.js";
+import memoRoutes from "./routes/memos.routes.js";
 import fieldRoutes from "./routes/fields.route.js";
+import statsRoutes from "./routes/stats.route.js";
 
 dotenv.config();
 const app = express();
@@ -39,8 +40,9 @@ app.use(express.json());
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
-//app.use("/api/memos", memoRoutes);
+app.use("/api/memos", memoRoutes);
 app.use("/api/fields", fieldRoutes);
+app.use("/api/stats", statsRoutes);
 
 // Add health check endpoint for diagnostics
 app.get("/api/health", (req, res) => {

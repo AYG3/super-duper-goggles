@@ -96,4 +96,28 @@ const loginUser = asyncHandler(async (req, res) => {
   }
 });
 
-export { registerUser, loginUser, registerPublicUser };
+// Get current user
+const getCurrentUser = asyncHandler(async (req, res) => {
+  // req.user is set by the protect middleware
+  const user = await User.findById(req.user._id).select("-password");
+
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  res.json({
+    success: true,
+    data: {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      department: user.department,
+      createdAt: user.createdAt
+    },
+    message: "Current user retrieved successfully"
+  });
+});
+
+export { registerUser, loginUser, registerPublicUser, getCurrentUser };

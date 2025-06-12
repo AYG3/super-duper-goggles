@@ -54,7 +54,11 @@ const createMemo = asyncHandler(async (req, res) => {
     });
   }
 
-  res.status(201).json(memo);
+  res.status(201).json({
+    success: true,
+    data: memo,
+    message: "Memo created successfully"
+  });
 });
 
 // Get memos for user
@@ -62,7 +66,12 @@ const getMemos = asyncHandler(async (req, res) => {
   const memos = await Memo.find({
     $or: [{ recipients: req.user._id }, { department: req.user.department }],
   }).populate("sender", "name email");
-  res.json(memos);
+
+  res.json({
+    success: true,
+    data: memos,
+    message: "Memos retrieved successfully"
+  });
 });
 
 // Update memo status (e.g., read, acknowledged)
@@ -87,7 +96,11 @@ const updateMemoStatus = asyncHandler(async (req, res) => {
   memo.updatedAt = new Date();
   await memo.save();
 
-  res.json(memo);
+  res.json({
+    success: true,
+    data: memo,
+    message: "Memo status updated successfully"
+  });
 });
 
 // Archive memo
@@ -111,7 +124,11 @@ const archiveMemo = asyncHandler(async (req, res) => {
   memo.status.set("archived", { status: "archived", timestamp: new Date() });
   await memo.save();
 
-  res.json(memo);
+  res.json({
+    success: true,
+    data: memo,
+    message: "Memo archived successfully"
+  });
 });
 
 export { createMemo, getMemos, updateMemoStatus, archiveMemo };
