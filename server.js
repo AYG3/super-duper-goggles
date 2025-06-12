@@ -49,11 +49,13 @@ app.get("/api/health", (req, res) => {
   res.status(200).json({ status: "ok", message: "Server is running" });
 });
 
-// Error handling
+// Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error('Error:', err.stack);
   res.status(err.status || 500).json({
+    success: false,
     message: err.message || "Server Error",
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
   });
 });
 
