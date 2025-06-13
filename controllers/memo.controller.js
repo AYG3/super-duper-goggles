@@ -21,7 +21,20 @@ const createMemo = asyncHandler(async (req, res) => {
   // Validate recipients or department
   let recipientIds = [];
   if (recipients) {
-    recipientIds = recipients;
+    // Support both emails and IDs in recipients
+    recipientIds = await Promise.all(
+      recipients.map(async (recipient) => {
+        if (typeof recipient === "string" && recipient.includes("@")) {
+          const user = await User.findOne({ email: recipient });
+          if (!user) {
+            res.status(400);
+            throw new Error(`Recipient email not found: ${recipient}`);
+          }
+          return user._id;
+        }
+        return recipient; // Assume it's already a user ID
+      })
+    );
   } else if (department) {
     const users = await User.find({ department });
     recipientIds = users.map((user) => user._id);
