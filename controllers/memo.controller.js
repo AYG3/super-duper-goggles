@@ -144,4 +144,38 @@ const archiveMemo = asyncHandler(async (req, res) => {
   });
 });
 
-export { createMemo, getMemos, updateMemoStatus, archiveMemo };
+// Update reply and approval for a memo (per recipient)
+const updateMemoResponse = asyncHandler(async (req, res) => {
+  const { memoId } = req.params;
+  const { reply, approved } = req.body;
+  const userId = req.user._id.toString();
+
+  const memo = await Memo.findById(memoId);
+  if (!memo) {
+    res.status(404);
+    throw new Error("Memo not found");
+  }
+
+  // Check if user is a recipient
+  if (!memo.recipients.map(id => id.toString()).includes(userId)) {
+    res.status(403);
+    throw new Error("Not authorized to respond to this memo");
+  }
+
+  // Update or create response for this user
+  memo.responses.set(userId, {
+    reply: reply || "",
+    approved: approved === true,
+    timestamp: new Date()
+  });
+  memo.updatedAt = new Date();
+  await memo.save();
+
+  res.json({
+    success: true,
+    data: memo,
+    message: "Response updated successfully"
+  });
+});
+
+export { createMemo, getMemos, updateMemoStatus, archiveMemo, updateMemoResponse };

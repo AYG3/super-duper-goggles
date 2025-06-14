@@ -16,6 +16,15 @@ const memoSchema = new mongoose.Schema({
       timestamp: { type: Date, default: Date.now },
     },
   },
+  responses: {
+    type: Map,
+    of: {
+      reply: { type: String, default: "" },
+      approved: { type: Boolean, default: false },
+      timestamp: { type: Date },
+    },
+    default: undefined,
+  },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
