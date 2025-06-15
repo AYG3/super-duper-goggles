@@ -147,7 +147,9 @@ const archiveMemo = asyncHandler(async (req, res) => {
 // Update reply and approval for a memo (per recipient)
 const updateMemoResponse = asyncHandler(async (req, res) => {
   const { memoId } = req.params;
-  const { reply, approved } = req.body;
+  // Accept both 'approved' and 'approval' from request body
+  const approved = req.body.approved !== undefined ? req.body.approved : req.body.approval;
+  const { reply } = req.body;
   const userId = req.user._id.toString();
 
   const memo = await Memo.findById(memoId);
@@ -160,6 +162,11 @@ const updateMemoResponse = asyncHandler(async (req, res) => {
   if (!memo.recipients.map(id => id.toString()).includes(userId)) {
     res.status(403);
     throw new Error("Not authorized to respond to this memo");
+  }
+
+  // Ensure responses is a Map
+  if (!memo.responses || typeof memo.responses.set !== 'function') {
+    memo.responses = new Map();
   }
 
   // Update or create response for this user
