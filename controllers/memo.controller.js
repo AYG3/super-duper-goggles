@@ -58,14 +58,14 @@ const createMemo = asyncHandler(async (req, res) => {
   });
 
   // Send email notifications
-  const recipientUsers = await User.find({ _id: { $in: recipientIds } });
-  for (const user of recipientUsers) {
-    await sendEmail({
-      to: user.email,
-      subject: "New Memo Received",
-      text: `You have received a new memo from ${req.user.name}. Log in to view details.`,
-    });
-  }
+  // const recipientUsers = await User.find({ _id: { $in: recipientIds } });
+  // for (const user of recipientUsers) {
+  //   await sendEmail({
+  //     to: user.email,
+  //     subject: "New Memo Received",
+  //     text: `You have received a new memo from ${req.user.name}. Log in to view details.`,
+  //   });
+  // }
 
   res.status(201).json({
     success: true,
@@ -77,8 +77,14 @@ const createMemo = asyncHandler(async (req, res) => {
 // Get memos for user
 const getMemos = asyncHandler(async (req, res) => {
   const memos = await Memo.find({
-    $or: [{ recipients: req.user._id }, { department: req.user.department }],
-  }).populate("sender", "name email");
+    $or: [
+      { sender: req.user._id },
+      { recipients: req.user._id },
+      { department: req.user.department }
+    ],
+  })
+    .populate("sender", "name email department")
+    .populate("recipients", "name email department"); // Populate recipients with name, email, department
 
   res.json({
     success: true,
