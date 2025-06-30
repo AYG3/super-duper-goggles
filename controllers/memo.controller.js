@@ -33,7 +33,7 @@ const createMemo = asyncHandler(async (req, res) => {
           return user._id;
         }
         return recipient; // Assume it's already a user ID
-      })
+      }),
     );
   } else if (department) {
     const users = await User.find({ department });
@@ -70,7 +70,7 @@ const createMemo = asyncHandler(async (req, res) => {
   res.status(201).json({
     success: true,
     data: memo,
-    message: "Memo created successfully"
+    message: "Memo created successfully",
   });
 });
 
@@ -80,7 +80,7 @@ const getMemos = asyncHandler(async (req, res) => {
     $or: [
       { sender: req.user._id },
       { recipients: req.user._id },
-      { department: req.user.department }
+      { department: req.user.department },
     ],
   })
     .populate("sender", "name email department")
@@ -89,7 +89,7 @@ const getMemos = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     data: memos,
-    message: "Memos retrieved successfully"
+    message: "Memos retrieved successfully",
   });
 });
 
@@ -118,7 +118,7 @@ const updateMemoStatus = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     data: memo,
-    message: "Memo status updated successfully"
+    message: "Memo status updated successfully",
   });
 });
 
@@ -146,7 +146,7 @@ const archiveMemo = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     data: memo,
-    message: "Memo archived successfully"
+    message: "Memo archived successfully",
   });
 });
 
@@ -154,7 +154,8 @@ const archiveMemo = asyncHandler(async (req, res) => {
 const updateMemoResponse = asyncHandler(async (req, res) => {
   const { memoId } = req.params;
   // Accept both 'approved' and 'approval' from request body
-  const approved = req.body.approved !== undefined ? req.body.approved : req.body.approval;
+  const approved =
+    req.body.approved !== undefined ? req.body.approved : req.body.approval;
   const { reply } = req.body;
   const userId = req.user._id.toString();
 
@@ -165,13 +166,13 @@ const updateMemoResponse = asyncHandler(async (req, res) => {
   }
 
   // Check if user is a recipient
-  if (!memo.recipients.map(id => id.toString()).includes(userId)) {
+  if (!memo.recipients.map((id) => id.toString()).includes(userId)) {
     res.status(403);
     throw new Error("Not authorized to respond to this memo");
   }
 
   // Ensure responses is a Map
-  if (!memo.responses || typeof memo.responses.set !== 'function') {
+  if (!memo.responses || typeof memo.responses.set !== "function") {
     memo.responses = new Map();
   }
 
@@ -179,7 +180,7 @@ const updateMemoResponse = asyncHandler(async (req, res) => {
   memo.responses.set(userId, {
     reply: reply || "",
     approved: approved === true,
-    timestamp: new Date()
+    timestamp: new Date(),
   });
   memo.updatedAt = new Date();
   await memo.save();
@@ -187,8 +188,89 @@ const updateMemoResponse = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     data: memo,
-    message: "Response updated successfully"
+    message: "Response updated successfully",
   });
 });
 
-export { createMemo, getMemos, updateMemoStatus, archiveMemo, updateMemoResponse };
+/**
+ * Forward a memo to new recipients (simple approach: add to recipients array)
+ * PUT /api/memos/:memoId/forward
+ * Body: { recipients: [userId or email, ...] }
+ */
+const forwardMemo = asyncHandler(async (req, res) => {
+  const { memoId } = req.params;
+  const { recipients } = req.body;
+  const userId = req.user._id;
+
+  if (!recipients || !Array.isArray(recipients) || recipients.length === 0) {
+    res.status(400);
+    throw new Error("Recipients are required for forwarding");
+  }
+
+  const memo = await Memo.findById(memoId);
+  if (!memo) {
+    res.status(404);
+    throw new Error("Memo not found");
+  }
+
+  // Only allow forwarding if user is a recipient or sender
+  if (
+    memo.sender.toString() !== userId.toString() &&
+    !memo.recipients.map((id) => id.toString()).includes(userId.toString())
+  ) {
+    res.status(403);
+    throw new Error("Not authorized to forward this memo");
+  }
+
+  // Resolve recipient IDs (support both emails and IDs)
+  const newRecipientIds = await Promise.all(
+    recipients.map(async (recipient) => {
+      if (typeof recipient === "string" && recipient.includes("@")) {
+        const user = await User.findOne({ email: recipient });
+        if (!user) {
+          res.status(400);
+          throw new Error(`Recipient email not found: ${recipient}`);
+        }
+        return user._id;
+      }
+      return recipient;
+    }),
+  );
+
+  // Add new recipients if not already present
+  let added = 0;
+  newRecipientIds.forEach((id) => {
+    const idStr = id.toString();
+    if (!memo.recipients.map((r) => r.toString()).includes(idStr)) {
+      memo.recipients.push(id);
+      memo.status.set(idStr, { status: "sent", timestamp: new Date() });
+      added++;
+    }
+  });
+
+  if (added === 0) {
+    return res.status(200).json({
+      success: true,
+      message: "No new recipients were added (all already present)",
+      data: memo,
+    });
+  }
+
+  memo.updatedAt = new Date();
+  await memo.save();
+
+  res.status(200).json({
+    success: true,
+    message: `Memo forwarded to ${added} new recipient(s)`,
+    data: memo,
+  });
+});
+
+export {
+  createMemo,
+  getMemos,
+  updateMemoStatus,
+  archiveMemo,
+  updateMemoResponse,
+  forwardMemo,
+};
