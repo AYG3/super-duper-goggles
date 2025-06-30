@@ -18,8 +18,11 @@ connectDB();
 
 // CORS Configuration - FIXED
 const corsOptions = {
-  origin: ["*"],
-  credentials: true,  
+  origin: [
+    "http://localhost:3000",
+    "https://memostream-fe-next.vercel.app"
+  ],
+  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: [
     'Content-Type',
@@ -43,6 +46,9 @@ app.use("/api/stats", statsRoutes);
 
 // Add health check endpoint for diagnostics
 app.get("/api/health", (req, res) => {
+  res.status(200).json({ status: "ok", message: "Server is running" });
+});
+app.get("/", (req, res) => {
   res.status(200).json({ status: "ok", message: "Server is running" });
 });
 
