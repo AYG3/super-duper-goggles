@@ -21,7 +21,8 @@ const corsOptions = {
   origin: [
     'http://localhost:3000',  // Next.js frontend
     'http://127.0.0.1:3000',  // Alternative localhost
-    "https://memostream-fe-next-git-branch-1-gilbert-ayokus-projects.vercel.app"
+    "https://memostream-fe-next-git-branch-1-gilbert-ayokus-projects.vercel.app",
+    "*"
   ],
   credentials: true,  
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
