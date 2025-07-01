@@ -14,6 +14,7 @@ import { paraphraseMemoContent } from "../controllers/memo.controller.js";
 
 const router = express.Router();
 
+router.post("/paraphrase", paraphraseMemoContent);
 router.use(protect);
 router.post("/", createMemo);
 router.get("/", getMemos);
@@ -26,5 +27,4 @@ router.put("/:memoId/forward", forwardMemo);
 
 //AI-Paraphraser
 
-router.post("/paraphrase", paraphraseMemoContent);
 export default router;
