@@ -3,6 +3,7 @@ import Memo from "../models/Memo.js";
 import MemoField from "../models/MemoField.js";
 import User from "../models/User.js";
 import { sendEmail } from "../utils/email.js";
+import { paraphraseText } from "../utils/paraphrase.js";
 
 // Create and send memo
 const createMemo = asyncHandler(async (req, res) => {
@@ -266,6 +267,17 @@ const forwardMemo = asyncHandler(async (req, res) => {
   });
 });
 
+//AI Addition
+const paraphraseMemoContent = asyncHandler(async (req, res) => {
+  const { content } = req.body;
+  if (!content || typeof content !== "string") {
+    res.status(400);
+    throw new Error("Content must be a string");
+  }
+  const rewritten = await paraphraseText(content);
+  res.json({ success: true, rewritten });
+});
+
 export {
   createMemo,
   getMemos,
@@ -273,4 +285,5 @@ export {
   archiveMemo,
   updateMemoResponse,
   forwardMemo,
+  paraphraseMemoContent
 };
