@@ -20,7 +20,8 @@ connectDB();
 const corsOptions = {
   origin: [
     "http://localhost:3000",
-    "https://memostream-fe-next.vercel.app"
+    "https://memostream-fe-next.vercel.app",
+    "https://memostream-fe-next-git-branch-1-gilbert-ayokus-projects.vercel.app"
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
